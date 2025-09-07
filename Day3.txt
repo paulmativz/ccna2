@@ -1,0 +1,396 @@
+@corebaba
+config t
+monitor session 1 source int fa0/3,fa0/5, fa0/7
+monitor session 1 destination int fa0/1, fa0/9
+end
+
+search rtp active call
+Wire tapping
+
+@Edge
+config t
+Int lo1
+ip address 10.100.10.33 255.255.255.224
+Int lo2
+ip address 10.100.10.65 255.255.255.224
+Int lo3
+ip address 10.100.10.65 255.255.255.224
+Int lo4
+ip address 10.100.10.97 255.255.255.224
+Int lo5
+ip address 10.100.10.129 255.255.255.224
+Int lo6
+ip address 10.100.10.193 255.255.255.224
+Int lo7
+ip address 10.100.10.225 255.255.255.224
+Int lo8
+ip address 10.100.10.1 255.255.255.224
+end
+
+Setup DHCP for D1 and D2
+
+how to setup DHCP
+ip dhcp excluded-add <range ofIP to be excluded>
+ip dhcp pool <name>
+  network <network IP> subnet ng netIP  
+  default-router <user IP ng def. gateway> 
+
+@D1
+config t
+ip dhcp excluded-add 10.2.1.1 10.2.1.99
+ip dhcp excluded-add 10.2.1.200 10.2.1.254
+ ip dhcp pool vlan10
+    network 10.2.1.0 255.255.255.0
+    default-router 10.2.1.254
+end
+
+@D2
+config t
+ip dhcp excluded-add 10.2.2.1 10.2.2.99
+ip dhcp excluded-add 10.2.2.200 10.2.2.254
+ ip dhcp pool vlan20
+    network 10.2.2.0 255.255.255.0
+    default-router 10.2.2.254
+end
+    
+@A1
+config t
+int e0/0
+ switchport mode access
+ switchport access vlan 10
+end
+
+@A2
+config t
+int e1/0
+ switchport mode access
+ switchport access vlan 20
+end
+
+@P1
+config t
+int e0/0
+ ip add dhcp
+ no shut
+end
+sh ip int brief | ex una
+
+@P2
+config t
+int e1/0
+ ip add dhcp
+ no shut
+end
+sh ip int brief | ex una
+
+CISCO Routing Protocols
+
+Para maging master sa routing, 
+IM.BODS
+
+I - ISIS
+M - MPLS (Multiprotocol Layer Switching) ex. OSPF - BGP - OSPF
+_______________Boundaries mo muna below as CCNA
+(DYNAMIC ROUTING)
+B - Border Gateway Protocol (BGP) (CCNP Level hinahagingan sa job requirements
+O - Open Shortest Path First (OSPF)
+D - D'EIGRP (Enhanced Interior Gateway Routing Protocol)
+-------------------------
+(STATIC ROUTING PROTOCOL)
+S - Static
+S* - Default Static (a.k.a STUB Routing in old CCNA days)
+
+Best practice before to configure routing, know the 2 rules of pingables
+1. PING = DIKIT
+2. ROUTE not Dikit
+
+STATIC ROUTING
+-Administrative Distance = 2
+-A.K.A as manual routing
+-Applying static route 2 way to configure
+    (Source and Destination and vice-versa
+
+recipe: ip route <not directly connected network IP subnet mask of not directly connected network, Host IP of next hop>
+
+R4 ------> R2
+@R4
+config t
+ip route 10.1.1.4 255.255.255.252 10.1.1.9
+end
+
+@R2
+config t
+ip route 10.1.1.8 255.255.255.252 10.1.1.6
+end
+
+@R3
+config t
+ip route 10.1.1.0 255.255.255.252 10.1.1.5
+end
+
+@R1
+config t
+ip route 10.1.1.4 255.255.255.252 10.1.1.2
+end
+
+@R1 - R4
+config t
+ip route 10.1.1.8 255.255.255.252 10.1.1.2
+end
+
+
+@R4 to R1
+config t
+ip route 10.1.1.0 255.255.255.252 10.1.1.9
+end
+
+------------------------------------------------------------------------------
+
+@R1,R2,R3,R4 Clear the Static Routes
+
+config t
+no ip routing
+ip routing
+end
+
+------------------------------------------------------------------------------
+EIGRP
+-AD = 90
+-The best dynamic routing protocol
+-Cisco Proprietary
+
+STATES: Hello > Query > Updates > Receive > Acknowledge
+
+recipe:
+config t
+ router eigrp (AS No., must be matched to other EIGRP routers)
+ no auto-summary
+ network (Directly connected NetIP)
+   *this could be multiple timed depending on how many directly connected routes
+
+@D1
+config t
+ router eigrp 100
+ no auto-summary
+ network 10.1.4.4
+ network 10.2.1.0
+ network 10.2.2.0
+ network 192.168.1.128
+
+@D2
+config t
+ router eigrp 100
+ no auto-summary
+ network 10.1.4.8
+ network 10.2.1.0
+ network 10.2.2.0
+ network 192.168.1.128
+
+config t
+ router eigrp 100
+ no auto-summary
+ network 10.1.4.4
+ network 10.1.4.8
+end
+to check
+SIEN:show ipeigrp neighbor
+SIP:sh ip protocol
+SIRE: sh ip route eigrp
+
+-----------------------------------------------------------------------
+OSPF
+-Multi vendor dynamic routing
+-Link State Advertisment
+-Implements Djikstra Algorithm
+-Advertised by (Area 0 is the backbone)
+-
+
+STATES:
+D - Down
+I - Initialize
+T - Two-way
+E - Exstart
+E - Exchange
+L - Loading
+F - FULL
+
+@corebaba
+config t
+router eigrp 100
+ network 10.0.0.0
+ end
+
+classic recipe:
+config t
+router ospf # (process ID)
+          router-id (#.#.#.#) (Kadalasan loop back address)
+          network <Directly Connected NetIP> <Wildcard of DCN) area (##)
+
+@R4
+config t
+router ospf 1
+       router-id 4.4.4.4
+       network 10.1.1.8 0.0.0.3 area 34
+       network 4.4.4.4 0.0.0.0 area 34 
+
+@R3
+config t
+router ospf 1
+       router-id 3.3.3.3
+       network 10.1.1.8 0.0.0.3 area 34
+       network 10.1.1.4 0.0.0.3 area 0
+       network 3.3.3.3 0.0.0.0 area 0 (Depends on the are you belong)
+
+@R2
+config t
+router ospf 1
+       router-id 2.2.2.2
+       network 10.1.1.0 0.0.0.3 area 12
+       network 10.1.1.4 0.0.0.3 area 0
+       network 3.3.3.3 0.0.0.0 area 0 (Depends on the are you belong
+
+@R1
+config t
+router ospf 1
+       router-id 1.1.1.1
+       network 10.1.1.0 0.0.0.3 area 12
+       network 1.1.1.1 0.0.0.0 area 0
+
+--------------------------------------------------------------------------------
+BGP = Border Gateway Protocol
+-Mostly used in WAN
+-Used by large corporation
+
+config t
+ router bgp # (AS No.)
+BGP log-neighbor -changes
+     neighbor <host ip ni kapitbahay> remote-as # (AS no)
+     no. of neighbors depends
+     network <NetIP papunta sa kapitbahay? mask <subnetmask kay kapitbahay>
+     
+@R1
+config t
+ router bgp 1
+ bgp log-neighbor-changes
+ neighbor 208.8.8.4 remote-as 45
+ neighbor 207.7.7.2 remote-as 2
+ neighbor 209.9.9.3 remote-as 3
+ network 208.8.8.0 mask 255.255.255.0 
+ network 207.7.7.0 mask 255.255.255.0 
+ network 209.9.9.0 mask 255.255.255.0
+ network 10.1.1.0 mask 255.255.255.0
+end
+
+@I1
+config t
+ router bgp 45
+ bgp log-neighbor-changes
+ neighbor 45.4.5.5 remote-as 45
+ neighbor 24.2.4.2 remote-as 2
+ neighbor 208.8.8.1 remote-as 1
+ network 45.4.5.0 mask 255.255.255.0 
+ network 24.2.4.0 mask 255.255.255.0 
+ network 208.8.8.0 mask 255.255.255.0
+ network 44.44.44.44 mask 255.255.255.255
+ !PretentInternet
+ network 0.0.0.0
+ ip route 0.0.0.0 0.0.0.0 null 0
+ ip route 10.0.0.0 255.0.0.0 208.8.8.1
+end
+
+
+@I2
+config t
+ router bgp 2
+ bgp log-neighbor-changes
+ neighbor 25.2.5.5 remote-as 45
+ neighbor 24.2.4.4 remote-as 25
+ neighbor 207.7.7.1 remote-as 1
+ neighbor 32.3.2.3 remote-as 3
+ network 25.2.5.0 mask 255.255.255.0 
+ network 24.2.4.0 mask 255.255.255.0 
+ network 207.7.7.0 mask 255.255.255.0
+ network 32.3.2.0 mask 255.255.255.0
+ network 22.22.22.22 mask 255.255.255.255
+ !PretentInternet
+ network 0.0.0.0
+ ip route 0.0.0.0 0.0.0.0 null 0
+ ip route 10.0.0.0 255.0.0.0 27.7.7.1
+end
+
+@I3
+config t
+no router bgp 2
+ router bgp 3
+ bgp log-neighbor-changes
+ neighbor 35.2.5.5 remote-as 45
+ neighbor 32.3.2.2 remote-as 2
+ neighbor 209.9.9.1 remote-as 1
+ network 35.3.5.0 mask 255.255.255.0 
+ network 32.3.2.0 mask 255.255.255.0 
+ network 209.9.9.0 mask 255.255.255.0
+ network 33.33.33.33 mask 255.255.255.255
+ !PretentInternet
+ network 0.0.0.0
+ ip route 0.0.0.0 0.0.0.0 null 0
+ ip route 10.0.0.0 255.0.0.0 27.9.9.1
+end
+
+@I4
+config t
+ router bgp 45
+ bgp log-neighbor -changes
+ neighbor 35.2.5.3 remote-as 3
+ neighbor 25.2.5.2 remote-as 2
+ neighbor 45.4.5.4 remote-as 45
+ network 35.2.5.0 mask 255.255.255.0 
+ network 25.2.5.0 mask 255.255.255.0 
+ network 45.4.5.0 mask 255.255.255.0
+ network 55.55.55.55 mask 255.255.255.255
+ network 8.8.8.8 mask 255.255.255.255
+
+sh ip bgp summary
+sh run | sec bgp
+
+
+ROUTE REDISTRIBUTION
+(by default, different routing protocols cannot get along to each other)
+@R1 (for BGP & OSPF)
+config t 
+router ospf 1
+default-information originate always
+end
+ 
+@R4 (for EIGRP enter OSPF)
+config t
+ router ospf 1
+ redistribute eigrp 100 subnets
+ exit
+
+@R4
+!OSPF Enter EIGRP
+config t
+router eigrp 100
+redistribute ospf 1 metric 1544 2000 255 1 1500
+
+sh int e1/0 (dito kinuha yung sa redistribute)
+
+DEFAULT STATIC (STUB ROUTING)
+
+Ping gateway vlan
+
+@P1
+config t
+ip route 0.0.0.0 0.0.0.0 10.2.1.1
+end
+
+@P2
+config t
+ip route 0.0.0.0 0.0.0.0 10.2.2.1
+end
+
+tracer 8.8.8.8
+
+EBGP - Router to Other router
+IBGP - Same ASN
+
