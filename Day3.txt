@@ -264,7 +264,7 @@ BGP = Border Gateway Protocol
 
 config t
  router bgp # (AS No.)
-BGP log-neighbor -changes
+log-neighbor -changes
      neighbor <host ip ni kapitbahay> remote-as # (AS no)
      no. of neighbors depends
      network <NetIP papunta sa kapitbahay? mask <subnetmask kay kapitbahay>
@@ -394,6 +394,7 @@ tracer 8.8.8.8
 
 EBGP - Router to Other router
 IBGP - Same ASN
+
 
 
 
