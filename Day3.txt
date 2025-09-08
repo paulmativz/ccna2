@@ -248,7 +248,7 @@ router ospf 1
        router-id 2.2.2.2
        network 10.1.1.0 0.0.0.3 area 12
        network 10.1.1.4 0.0.0.3 area 0
-       network 3.3.3.3 0.0.0.0 area 0 (Depends on the are you belong
+       network 2.2.2.2 0.0.0.0 area 0 (Depends on the are you belong
 
 @R1
 config t
@@ -394,5 +394,6 @@ tracer 8.8.8.8
 
 EBGP - Router to Other router
 IBGP - Same ASN
+
 
 
