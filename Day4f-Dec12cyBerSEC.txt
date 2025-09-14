@@ -31,6 +31,7 @@ ping www.ngcpM.ph
 
 youporn.com
 pornhub.com 66.254.114.41
+            161.49.21.
 redtube.com 66.254.114.23
 faketaxi.com 66.254.114.234
 bangbros.com
@@ -74,9 +75,10 @@ do sh ip int brief
 ALL THE PORN SITES THE WORLD ARE OWNED BY 5 COMPANIES:
 
 config t
-NO ip access-list standard NOPORNFAP
-ip access-list standard NOPORNFAP
+NO ip access-list standard NOPORN
+ip access-list standard NOPORN
 DENY 66.254.0.0 0.0.255.255
+DENY 161.49.0.0 0.0.255.255
 DENY 104.21.0.0 0.0.255.255
 DENY 68.235.0.0 0.0.255.255
 DENY 104.17.0.0 0.0.255.255
@@ -85,12 +87,12 @@ DENY 208.77.0.0 0.0.255.255
 DENY 172.67.0.0 0.0.255.255
 Permit Any
 Int Gi 1
- ip access-group NOPORNFAP in
+ ip access-group NOPORN in
 end
 Goberno: allow all Porn, for freedom of expression!
 config t
 Int gi 1
- NO ip access-group NOPORNFAP in
+ NO ip access-group NOPORN in
 end
 
 Alternative: use standard ACL 1-99
@@ -1038,6 +1040,7 @@ https:///restconf/data/Cisco-IOS-XE-native:native/interface/Loopback
 
 HomeWork for the Hardest Day in CCNA: 
 CSr, linuxdocker, pythondocker, Postman: RestApi.
+
 
 
 
