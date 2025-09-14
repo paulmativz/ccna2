@@ -121,15 +121,15 @@ ping www.dlsu.edu.ph 172.67.14.0   104.22.36.0
 ping www.ccp.edu.ph 50.6.160.0     
 ping www.feu.edu.ph 184.168.125.0  
 ping  www.ue.edu.ph 155.137.92.0  
-ping  www.yourschool.edu.ph = _________
+ping  www.bpc.edu.ph 74.208.236.229
 config t
 NO ip access-list standard NOISKUL
 ip access-list standard NOISKUL
-DENY   __.__.__.__   0.0.255.255
-DENY   __.__.__.__   0.0.255.255
-DENY   __.__.__.__   0.0.255.255
-DENY   __.__.__.__   0.0.255.255
-DENY   __.__.__.__   0.0.255.255
+DENY   172.67.0.0    0.0.255.255
+DENY   50.6.0.0   0.0.255.255
+DENY   184.168.0.0   0.0.255.255
+DENY  155.137.0.0  0.0.255.255
+DENY  74.208.0.0   0.0.255.255
 Permit Any
 Int Gi 1
  ip access-group NOISKUL in
@@ -145,11 +145,16 @@ www.iptorrents.com  104.26.   95.211.
 config t
 NO ip access-list standard NOTORS
 ip access-list standard NOTORS
-DENY   __.__.__.__   0.0.255.255
-DENY   __.__.__.__   0.0.255.255
-DENY   __.__.__.__   0.0.255.255
-DENY   __.__.__.__   0.0.255.255
-DENY   __.__.__.__   0.0.255.255
+DENY   162.159.0.0   0.0.255.255
+DENY   104.21.0.0   0.0.255.255
+DENY   172.67.0.0   0.0.255.255
+DENY   84.32.0.0   0.0.255.255
+DENY  104.21.0.0   0.0.255.255
+DENY  76.223.0.0   0.0.255.255
+DENY  13.248.0.0   0.0.255.255
+DENY  104.21.0.0   0.0.255.255
+DENY  104.26.0.0   0.0.255.255
+DENY   95.211.0.0   0.0.255.255
 Permit Any
 Int Gi 1
  ip access-group NOTORS in
@@ -244,6 +249,10 @@ Interface Gi0/0/1
 TASK4: Experience a day as a
 How to be CyberSecurityEnginner/Analyst/PenetrationTester?
 
+CUCM
+ip route 0.0.0.0 0.0.0.0 10.12.100.4
+do ping 10.12.100.4
+
 How to attack:
 c> netstat -ano
 
@@ -281,6 +290,19 @@ service udp-small-servers
 ip dns server
 ip http server
 ip http secure-server
+telephony-service
+max-ephone 2
+max-dn 4
+ip source-address 192.168.102.11 port 2000
+voice service voip
+ allow-connection sip to sip
+ sip
+  registrar server expires max 600 min 60
+voice register global
+mode cme
+source-address 192.168.102.11 port 5060
+max-dn 12
+max-pool 12
 !Make Ping EASY
 ip host www.web310.com 192.168.103.10
 ip host www.web311.com 192.168.103.11
@@ -309,30 +331,33 @@ Top 5 UTM: 1.FortinetFortigate: syet
 
 Firewall Profile no.1: use ExtendedACL vs NamedExtendedAcl:
 ex.1: you are the Blue Team/SOC guys for pogo sites:
-www.web310.com open only http, https, ping
-www.web311.com open only dns, https, ssh       ==> 6 lines:
+ebet10.com open only http, https, ping:80, 443, icmp
+ebet11.com open only dns, https, ssh    53, 443, 22     ==> 6 lines:
   GOLDEN  FIREWALL FORMULA:  paloalto,fortinet,cisco,checkpoint.
    protocol         hacker    victim       port
 tcp,udp,icmp,IP     Any      web310/11
 Config t
+ip host ebet10.com 192.168.103.10
+ip host ebet11.com 192.168.103.11
 service timestamps log datetime
 service timestamps debug datetime
-logging 10.m.1.10
+logging 10.12.1.10
 logging trap 5
-NO IP access-list Extended FWP1
-IP access-list Extended FWP1
- Permit tcp Any host www.web310.com eq 80 log
- Permit tcp Any host www.web310.com eq 443 log
- Permit icmp Any host www.web310.com log
- Permit tcp Any host www.web311.com eq 53 log
- Permit tcp Any host www.web311.com eq 443 log
- Permit tcp Any host www.web311.com eq 22 log
+!!How to sumbong to SPLUNK LOGS
+NO IP access-list Extended NGFW1
+IP access-list Extended NGFW1
+ Permit tcp Any host ebet10.com eq 80 log
+ Permit tcp Any host ebet10.com eq 443 log
+ Permit icmp Any host ebet10.com log
+ Permit tcp Any host ebet11.com eq 53 log
+ Permit tcp Any host ebet11.com eq 443 log
+ Permit tcp Any host ebet11.com eq 22 log
  Int Gi 3
-  ip access-group FWP1 in
+  ip access-group NGFW1 in
 REMOVE FIREWALL:
 CONfig t
  Int Gi 3
-  NO ip access-group FWP1 in
+  NO ip access-group NGFW1 in
 end
 
 TAKASSSSSSSSG:  control shift 6 bitaw X
@@ -493,12 +518,12 @@ end
 show ntp associations
 GIVE IP ADDRESS TO LINUX BLDGONE AND BLDGTWO:
 sudo su
-bldg1:
+CONF-1/bldg1:
 sudo su
 ifconfig eth0 192.168.103.21 netmask 255.255.255.0 up
 route add default gw 192.168.103.11
 ping 192.168.103.11
-bldg2:
+CONF-2/bldg2:
 sudo su
 ifconfig eth0 192.168.103.22 netmask 255.255.255.0 up
 route add default gw 192.168.103.11
@@ -570,11 +595,10 @@ Int Gi 3
  ip nat Inside
 Int gi 1
  ip nat Outside
-IP Nat inside source static tcp 192.168.103.21 80 208.8.8.101 8080
-IP Nat inside source static tcp 192.168.103.21 443 208.8.8.101 8443
-IP Nat inside source static tcp 192.168.103.21 22 208.8.8.101 8069
-IP Nat inside source static tcp 192.168.103.22 80 208.8.8.102 8080
-IP Nat inside source static tcp 192.168.103.22 443 208.8.8.102 8443
+IP Nat inside source static tcp 192.168.103.21 80 208.8.8.47 80
+IP Nat inside source static tcp 192.168.103.21 443 208.8.8.47 443
+IP Nat inside source static tcp 192.168.103.22 80 208.8.8.47 8080
+IP Nat inside source static tcp 192.168.103.22 443 208.8.8.47 8443
 IP nat inside source list 8 int gi 1 Overload
 end
 show ip nat translation
@@ -1040,6 +1064,7 @@ https:///restconf/data/Cisco-IOS-XE-native:native/interface/Loopback
 
 HomeWork for the Hardest Day in CCNA: 
 CSr, linuxdocker, pythondocker, Postman: RestApi.
+
 
 
 
