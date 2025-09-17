@@ -651,7 +651,14 @@ ip add 208.8.8.11 255.255.255.0
 int gi 3
 no shut
 ip add 10.10.10.1 255.255.255.0
-do sh ip int brief
+end
+!
+config t
+username admin privilege 15 secret pass
+ip http server
+ip http secure-server
+ip http authentication local
+end
 
 step2: prepare FWvpnJP:
 @edge
@@ -672,7 +679,15 @@ ip add 208.8.8.12 255.255.255.0
 int gi 3
 no shut
 ip add 20.20.20.1 255.255.255.0
-do sh ip int brief
+end
+!
+config t
+username admin privilege 15 secret pass
+ip http server
+ip http secure-server
+ip http authentication local
+end
+wr
 
 bldg1inPINAS
 sudo su
@@ -1064,6 +1079,7 @@ https:///restconf/data/Cisco-IOS-XE-native:native/interface/Loopback
 
 HomeWork for the Hardest Day in CCNA: 
 CSr, linuxdocker, pythondocker, Postman: RestApi.
+
 
 
 
