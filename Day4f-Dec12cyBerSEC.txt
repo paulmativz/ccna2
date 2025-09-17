@@ -650,7 +650,7 @@ no shut
 ip add 208.8.8.11 255.255.255.0
 int gi 3
 no shut
-ip add 10.10.10.1 255.255.255.0
+ip add 10.10.10.11 255.255.255.0
 end
 !
 config t
@@ -678,7 +678,7 @@ no shut
 ip add 208.8.8.12 255.255.255.0
 int gi 3
 no shut
-ip add 20.20.20.1 255.255.255.0
+ip add 20.20.20.12 255.255.255.0
 end
 !
 config t
@@ -1079,6 +1079,7 @@ https:///restconf/data/Cisco-IOS-XE-native:native/interface/Loopback
 
 HomeWork for the Hardest Day in CCNA: 
 CSr, linuxdocker, pythondocker, Postman: RestApi.
+
 
 
 
