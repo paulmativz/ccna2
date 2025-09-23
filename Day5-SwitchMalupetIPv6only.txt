@@ -24,7 +24,7 @@ fec0:aabb:fafa:dada::/64 subnet to 22 offices/subnets:
 Con:  22 -> 5bits
 Add: /64 + /5 = /69
 iChamba:
-	8  4  2   1    8  4  2   1     8  4  2   1    8  4  2   1 
+	    8  4  2   1    8  4  2   1     8  4  2   1    8  4  2   1 
 1st     0  0  0   0    0   : 0000:
 2nd     0  0  0   0    1     :0800:
 3rd     0  0  0   1    0     :1000:
@@ -38,7 +38,7 @@ EX.2: SUBNET cafe:cafe:cafe:mm::/64 to 450 offices:
 C: 450 is 9bits
 A: /64+ /9 = /73
 iChamba:
-	8  4  2   1    8  4  2   1     8  4  2   1    8  4  2   1 
+	    8  4  2   1    8  4  2   1     8  4  2   1    8  4  2   1 
 1st     0  0  0   0    0  0  0   0     0  :0000:
 2nd     0  0  0   0    0  0  0   0     1  :0080:
 3rd     0  0  0   0    0  0  0   1     0  :0100:
@@ -730,6 +730,7 @@ how to get certified:
 2. Lab: NAT and DHCP:
 
 3. ask sa CHAT: "latest reivewer"
+
 
 
 
