@@ -25,7 +25,7 @@ Con:  22 -> 5bits
 Add: /64 + /5 = /69
 iChamba:
 	    8  4  2   1    8  4  2   1     8  4  2   1    8  4  2   1 
-1st     0  0  0   0    0   : 0000:
+1st     0  0  0   0    0     :0000:
 2nd     0  0  0   0    1     :0800:
 3rd     0  0  0   1    0     :1000:
 4th     0  0  0   1    1     :1800:
@@ -730,6 +730,7 @@ how to get certified:
 2. Lab: NAT and DHCP:
 
 3. ask sa CHAT: "latest reivewer"
+
 
 
 
