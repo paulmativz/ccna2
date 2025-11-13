@@ -1,0 +1,582 @@
+RIVAN CCNA DAY 3
+
+Beginning Task:
+-Redo the Day 1 Lab Setup cabling and config from your Github. ^_^
+
+login to PC: C1sc0123
+
+After complete setup and config / ping the following for testing:
+
+	10.m.1.10 = PC via Tunay LAN
+	10.m.1.4 = VLAN1 sa Switch (Data / Default Route from PC)
+	10.m.10.4 = VLAN10 sa Switch (Wireless)
+	10.m.50.6/8 = fixed IP ni camera via VLAN50 sa Switch
+	10.m.100.4 = VLAN 100 sa Switch (VOICE)
+	10.m.100.8 = CUCM IP Address (Via VLAN 100)
+	10.m.100.xxx = IP Phone Address (Via VLAN 100)
+	10.m.m.1 = Edge Router IP
+	10.m.m.4 = Default route from EDGE to g0/0 ni CoreBABA
+	200.0.0.m = IP to MetroEthernet (to/from Outbound Network)
+	200.0.0.K = Edge Connection to other Klassmeyt
+	10.K.50.6/8 = fixed IP ni camera via VLAN50 sa Switch ni Klasmeyt
+	10.K.1.10 = Klasmeyt PC
+
+
+
+
+
+
+
+SUBNETTING RECAP
+
+5 hit combo
+
+Design 10.100.10.0 network to 5 offices/department
+
+1. C - Convert 5 Offices to bits  = 3 bits
+2. A - Add /24 + /3 = /27 (4th, 32i) (255.255.255.224) 
+3. I - Ipasok si 32i sa kada 4th octet
+
+1st: 10.100.10.32/27
+2nd: 10.100.10.64/27
+3rd: 10.100.10.96/27
+4th: 10.100.10.128/27
+5th: 10.100.10.160/27
+
+If itotodo si /27
+4. Find the total hosts:
+    /32 -  _____ = /27  (2^5 = 32) - 2 (which is not usable to clients specifies the "network" and "broadcast" IP) 
+                 = 30 hosts
+
+5. Find all the subnets: 
+    /24 + _____ = /27 (2^3 = 8 Subnets)
+
+Subnet Zero: 10.100.10.0/27
+1st: 10.100.10.32/27
+2nd: 10.100.10.64/27
+3rd: 10.100.10.96/27
+4th: 10.100.10.128/27
+5th: 10.100.10.160/27
+6th: 10.100.10.192/27
+7th: 10.100.10.224/27
+
+!IMPLEMENTATION:
+
+@EDGE
+conf t
+int lo1
+ ip add 10.100.10.33 255.255.255.224
+int lo2
+ ip add 10.100.10.65 255.255.255.224
+int lo3
+ ip add 10.100.10.97 255.255.255.224
+int lo4
+ ip add 10.100.10.129 255.255.255.224
+int lo5
+ ip add 10.100.10.161 255.255.255.224
+int lo6
+ ip add 10.100.10.193 255.255.255.224
+int lo7
+ ip add 10.100.10.225 255.255.255.224
+int lo0
+ ip add 10.100.10.1 255.255.255.224
+end
+
+
+
+
+
+
+!Setup DHCP for D1 and D2
+
+how to setup DHCP
+conf t
+ ip dhcp excluded-add <begin range of IP to be excluded> <end range of IP to be excluded>
+ ip dhcp pool <name>  
+     network <network IP> <subnet mask ng NetIP>
+     default-router <user IP ng Def. Gateway, madalas (but not always) 1st usable IP>
+
+@D1
+conf t
+ ip dhcp excluded-add 10.2.1.1 10.2.1.99
+ ip dhcp excluded-add 10.2.1.200 10.2.1.254
+  ip dhcp pool vlan10
+     network 10.2.1.0 255.255.255.0
+     default-router 10.2.1.254
+
+@D2
+conf t
+ ip dhcp excluded-add 10.2.2.1 10.2.2.99
+ ip dhcp excluded-add 10.2.2.200 10.2.2.254
+  ip dhcp pool vlan20
+     network 10.2.2.0 255.255.255.0
+     default-router 10.2.2.254
+
+@A1
+conf t
+int e0/0
+ switchport mode access
+ switchport access vlan 10
+end
+
+@A2
+conf t
+int e1/0
+ switchport mode access
+ switchport access vlan 20
+end
+
+@P1
+conf t
+int e0/0
+ ip add dhcp
+ no shut
+end 
+
+@P2
+conf t
+int e1/0
+ ip add dhcp
+ no shut
+end 
+
+
+//bakit ang tagal ng IP, because of DORA the Explorer
+//Discover, Offer, Request, Acknowledgee
+!if an end device cannot find DHCP, APIPA will set (in Windows).
+
+@p1/p2   !display IP Address if they're assigned.
+bp    !(equivalent to "show ip int brief | exclude unassigned")
+
+
+
+
+
+
+CISCO ROUTING PROTOCOLS
+
+Para maging master ka sa routing, dapat pakilala ka as
+IM.BODSS
+
+(DYNAMIC ROUTING)
+I - IS-IS 
+M - MPLS (Multiprotocol Layer Switching)
+
+__________boundaries mo muna below as CCNA_____
+
+B - Border Gateway Protocol (BGP)(CCNP Level ito pero hinahagingan sa job requirement)
+O - Open Shortest Path First (OSPF)
+D - D'EIGRP (Enhanced Interior Gateway Routing Protocol)
+----------- 
+(STATIC ROUTING PROTOCOL)
+S - Static
+S* - Default Static (a.k.a. STUB Routing in old CCNA days)
+
+
+
+Best practice before to configure routing, know the two rules of pingables:
+1. PING = DIKIT
+2. ROUTE not DIKIT
+
+
+
+
+
+STATIC ROUTING
+- Administrative Distance = 2
+- A.K.A. as manual routing 
+- Applying static route requires 2 way to configure 
+     (Source and Destination and vice-versa)
+
+recipe: ip route <not directly connected network IP> 
+                 <subnet mask of NDCN>
+		 <Host IP of next hop>
+R4 ---> R2
+@r4
+conf t
+ip route 10.1.1.4 255.255.255.252 10.1.1.9
+END
+
+@r2
+conf t
+ip route 10.1.1.8 255.255.255.252 10.1.1.6
+END
+
+
+
+
+R3 ---> R1
+@r3
+conf t
+ip route 10.1.1.0 255.255.255.252 10.1.1.5
+END
+
+@r1
+conf t
+ip route 10.1.1.4 255.255.255.252 10.1.1.2
+END
+
+
+
+
+
+
+R4 --> R1
+@r4
+conf t
+ip route 10.1.1.0 255.255.255.252 10.1.1.9
+END
+
+@r1
+conf t
+ip route 10.1.1.8 255.255.255.252 10.1.1.2
+END
+
+
+
+//Sa static routing, basta tama yung next hop routes, dikit agad
+// Sa dynamic routing, hndi agad dumidikit agad because of their STATES, except almost sa EIGRP.
+
+
+
+@R1,R2,R3,R4  Clear the Static Routes for OSPF config later
+
+conf t
+no ip routing 
+ip routing 
+end
+
+
+
+
+
+
+
+
+Configure EIGRP Routing
+- Enhanced Interior Gateway Routing Protocol
+- AD = 90
+- The best dynamic routing protocol
+- Cisco Proprietary (means sa Cisco lang magagamit)
+
+STATES: Hello > Query > Update > Receive > Acknowledge
+
+recipe: 
+conf t
+ router eigrp <AS No., must be matched to other EIGRP routers>
+ no auto-summary 
+ network (Directly connected NetIP)
+   *this could be multiple timed depending on how many directly connected routes
+
+
+
+!network ip address mostly defined in dynamic routing
+(sh ip route) - shows 'C' Calye (network) and 'L' Lote(User/Interface/Host IP))
+(sh ip int br | inc C) show the network IPs can be used for routing.
+
+
+
+@D1
+conf t
+ router eigrp 100
+ no auto-summary
+ network 10.1.4.4
+ network 10.2.1.0
+ network 10.2.2.0
+ network 192.168.1.128
+end
+
+
+
+@D2
+conf t
+ router eigrp 100
+ no auto-summary
+ network 10.1.4.8
+ network 10.2.1.0
+ network 10.2.2.0
+ network 192.168.1.128
+end
+
+
+
+@R4
+conf t
+ router eigrp 100
+ no auto-summary
+ network 10.1.4.4
+ network 10.1.4.8
+end
+
+
+//sa modern config, nilalagyan ng wildcard mask each network 
+//lalo na sa Cisco NEXUS
+//(refer to the day3complete_routing github script)
+
+
+
+to check:
+SIEN: show ip eigrp neighbor     !dapat may oras each adjacent router
+SIP: show ip protocols		 !check kung may tumatakbo na routing, identifies AS No.
+SIRE: show ip route eigrp	 !listing of routes, dapat may D
+
+
+
+
+
+
+
+
+
+OSPF Routing
+- Multi Vendor dynamic routing protocol
+- Link State Advertisement
+- Implements Djikstra Algorithm
+- Advertised by AREA (Area 0 is the Backbone)
+
+STATES: 
+D - Down
+I - Init
+T - Two- Way
+E - Exstart
+E - Exchange
+L - Loading
+F - FULL
+
+
+original/classic recipe:
+conf t
+router ospf # (process id)
+	router-id (#.#.#.#) (kadalasan loopback address)
+	network <Directly Connected NetIP> <Wildcard of  DCN> area (##)
+
+
+
+@R4
+conf t
+router ospf 1
+	router-id 4.4.4.4
+	network 10.1.1.8 0.0.0.3 area 34
+	network 4.4.4.4 0.0.0.0 area 34
+end
+
+
+@R3
+conf t
+router ospf 1
+	router-id 3.3.3.3
+	network 10.1.1.8 0.0.0.3 area 34
+	network 10.1.1.4 0.0.0.3 area 0
+	network 3.3.3.3 0.0.0.0 area 0
+end
+
+
+@R2
+conf t
+router ospf 1
+	router-id 2.2.2.2
+	network 10.1.1.0 0.0.0.3 area 12
+	network 10.1.1.4 0.0.0.3 area 0
+	network 2.2.2.2 0.0.0.0 area 0
+end
+
+@R1
+conf t
+router ospf 1
+	router-id 1.1.1.1
+	network 10.1.1.0 0.0.0.3 area 12
+	network 1.1.1.1 0.0.0.0 area 12
+end
+
+
+
+
+
+!!! EXAM CONFIGURATION (mag "no router ospf 1" muna kung nailagay yung classic config)
+
+@github script lines 239~285
+
+
+
+
+
+
+
+
+
+BGP = Border Gateway Protocol
+-Mostly used in WAN
+-AD = 20
+-Used by ISP and Large Corporations
+
+STATES: Notification
+	Open
+	Keep-Alive
+	Update
+
+BGP is also BIG PayRoll
+
+
+recipe:
+
+conf t
+ router bgp # (AS No.)
+ bgp log-neighbor-changes 	!needed in real life for logging purposes
+	neighbor <host ip ni kapitbahay> remote-as # (AS no.) 
+	* no. of neighbors depends
+	network <NetIP papunta sa kapitbahay> mask <subnetmask kay kapitbahay>
+	* no. of network neighbor depends
+ end
+
+
+@R1
+conf t
+ router bgp 1
+ bgp log-neighbor-changes 
+ neighbor 208.8.8.4 remote-as 45
+ neighbor 207.7.7.2 remote-as 2
+ neighbor 209.9.9.3 remote-as 3
+ network 208.8.8.0 mask 255.255.255.0
+ network 207.7.7.0 mask 255.255.255.0
+ network 209.9.9.0 mask 255.255.255.0
+ network 10.1.1.0 mask 255.255.255.0
+end
+
+
+
+@I1
+conf t
+ router bgp 45
+ bgp log-neighbor-changes 
+ neighbor 45.4.5.5 remote-as 45
+ neighbor 24.2.4.2 remote-as 2
+ neighbor 208.8.8.1 remote-as 1
+ network 45.4.5.0 mask 255.255.255.0
+ network 24.2.4.0 mask 255.255.255.0
+ network 208.8.8.0 mask 255.255.255.0
+ network 44.44.44.44 mask 255.255.255.255
+!PretentInternet
+network 0.0.0.0
+ip route 0.0.0.0 0.0.0.0 null 0
+ip route 10.0.0.0 255.0.0.0 208.8.8.1
+end
+
+
+@I2
+conf t
+router bgp 2
+bgp log-neighbor-changes
+neighbor 25.2.5.5 remote-as 45
+neighbor 24.2.4.4 remote-as 45
+neighbor 207.7.7.1 remote-as 1
+neighbor 32.3.2.3 remote-as 3
+ network 25.2.5.0 mask 255.255.255.0
+ network 24.2.4.0 mask 255.255.255.0
+ network 207.7.7.0 mask 255.255.255.0
+ network 32.3.2.0 mask 255.255.255.0
+ network 22.22.22.22 mask 255.255.255.255
+
+!PretendInternet
+network 0.0.0.0
+ip route 0.0.0.0 0.0.0.0 null 0
+ip route 10.0.0.0 255.0.0.0 208.8.8.1
+ip route 192.168.0.0 255.255.0.0 207.7.7.1
+end
+
+
+
+
+@I3
+conf t
+ router bgp 3
+ bgp log-neighbor-changes 
+ neighbor 35.3.5.5 remote-as 45
+ neighbor 32.3.2.2 remote-as 2
+ neighbor 209.9.9.1 remote-as 1
+ network 35.3.5.0 mask 255.255.255.0
+ network 32.3.2.0 mask 255.255.255.0
+ network 209.9.9.0 mask 255.255.255.0
+ network 33.33.33.33 mask 255.255.255.255
+
+!PretentInternet
+network 0.0.0.0
+ip route 0.0.0.0 0.0.0.0 null 0
+ip route 10.0.0.0 255.0.0.0 209.9.9.1
+end
+
+
+
+
+
+
+@I4 (Google DNS)
+conf t
+router bgp 45
+bgp log-neighbor-changes
+neighbor 35.3.5.3 remote-as 3
+neighbor 25.2.5.2 remote-as 2
+neighbor 45.4.5.4 remote-as 45
+network 35.3.5.0 mask 255.255.255.0
+network 25.2.5.0 mask 255.255.255.0
+network 45.4.5.0 mask 255.255.255.0
+network 55.55.55.55 mask 255.255.255.255
+network 8.8.8.8 mask 255.255.255.255
+end
+
+
+!must ping 8.8.8.8 until R1
+!if hindi pa, might need to wait another minute due to NOKU States
+!"show ip route" to R1, ther should be O*E2
+
+
+
+
+ROUTE REDISTRIBUTION
+(by default, different routing protocols cannot get along to each other)
+
+@R1 (for BGP & OSPF)
+
+conf t
+router ospf 1
+default-information originate always
+end
+
+
+
+
+
+
+@R4 (for EIGRP enter OSPF)
+conf t
+ router ospf 1
+ redistribute eigrp 100 subnets
+ exit
+
+!OSPF Enter EIGRP
+router eigrp 100
+ redistribute ospf 1 metric 1544 2000 255 1 1500
+end
+
+!"show ip route" to D1, there should be D*EX
+
+
+
+
+
+
+
+DEFAULT STATIC (STUB ROUTING)
+
+@P1
+conf t
+ip route 0.0.0.0 0.0.0.0 10.2.1.1
+end
+
+@P2
+conf t
+ip route 0.0.0.0 0.0.0.0 10.2.2.2
+end
+
+
+!ping and traceroute 8.8.8.8
+
