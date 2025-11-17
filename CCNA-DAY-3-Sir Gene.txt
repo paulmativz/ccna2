@@ -197,12 +197,11 @@ conf t
 ip route 10.1.1.4 255.255.255.252 10.1.1.9
 END
 
+R2--->R4
 @r2
 conf t
 ip route 10.1.1.8 255.255.255.252 10.1.1.6
 END
-
-
 
 
 R3 ---> R1
@@ -211,13 +210,11 @@ conf t
 ip route 10.1.1.0 255.255.255.252 10.1.1.5
 END
 
+R1--->R4
 @r1
 conf t
 ip route 10.1.1.4 255.255.255.252 10.1.1.2
 END
-
-
-
 
 
 
@@ -227,6 +224,7 @@ conf t
 ip route 10.1.1.0 255.255.255.252 10.1.1.9
 END
 
+R1--->R4
 @r1
 conf t
 ip route 10.1.1.8 255.255.255.252 10.1.1.2
@@ -245,12 +243,6 @@ conf t
 no ip routing 
 ip routing 
 end
-
-
-
-
-
-
 
 
 Configure EIGRP Routing
@@ -579,4 +571,5 @@ end
 
 
 !ping and traceroute 8.8.8.8
+
 
