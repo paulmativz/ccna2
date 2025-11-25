@@ -41,7 +41,7 @@ ip dhcp excluded-add 10.2.1.1 10.2.1.99
 ip dhcp excluded-add 10.2.1.200 10.2.1.254
  ip dhcp pool vlan10
     network 10.2.1.0 255.255.255.0
-    default-router 10.2.1.254
+    default-router 10.2.1.1
 end
 
 @D2
@@ -50,7 +50,7 @@ ip dhcp excluded-add 10.2.2.1 10.2.2.99
 ip dhcp excluded-add 10.2.2.200 10.2.2.254
  ip dhcp pool vlan20
     network 10.2.2.0 255.255.255.0
-    default-router 10.2.2.254
+    default-router 10.2.2.1
 end
     
 @A1
@@ -394,6 +394,7 @@ tracer 8.8.8.8
 
 EBGP - Router to Other router
 IBGP - Same ASN
+
 
 
 
