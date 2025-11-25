@@ -316,7 +316,7 @@ config t
  !PretentInternet
  network 0.0.0.0
  ip route 0.0.0.0 0.0.0.0 null 0
- ip route 10.0.0.0 255.0.0.0 27.7.7.1
+ ip route 10.0.0.0 255.0.0.0 207.7.7.1
 end
 
 @I3
@@ -334,7 +334,7 @@ no router bgp 2
  !PretentInternet
  network 0.0.0.0
  ip route 0.0.0.0 0.0.0.0 null 0
- ip route 10.0.0.0 255.0.0.0 27.9.9.1
+ ip route 10.0.0.0 255.0.0.0 209.9.9.1
 end
 
 @I4
@@ -394,6 +394,7 @@ tracer 8.8.8.8
 
 EBGP - Router to Other router
 IBGP - Same ASN
+
 
 
 
